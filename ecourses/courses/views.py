@@ -3,13 +3,25 @@ from django.http import HttpResponse
 from rest_framework.decorators import action
 from .models import Course,Lesson,Tag,User
 from rest_framework import viewsets,permissions,generics
-from .serializers import CourseSerializer,LessonSerializer,UserSerializer
+from .serializers import CourseSerializer,LessonSerializer,UserSerializer,CommentSerializer
 from rest_framework.response import Response
 from rest_framework  import status
 from rest_framework.parsers  import MultiPartParser
+from django.shortcuts import get_object_or_404
+from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import generics 
 
+from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
 # Create your views here.
 
+class ExampleView(APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):
+        return Response({'received data': request.data})
+    
 class UserViewSet(viewsets.ViewSet,
                 generics.CreateAPIView,
                 generics.RetrieveAPIView,
@@ -61,6 +73,32 @@ def Index(requesst):
     return HttpResponse(t)
 
 
+class UserViewSet2(viewsets.ViewSet):
+    """
+    A simple ViewSet for listing or retrieving users.
+    """
+    def list(self, request):
+        queryset = User.objects.all()
+        serializer = UserSerializer(queryset, many=True)
+        return Response(serializer.data)
 
+    def retrieve(self, request, pk=None):
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    
+class UserCountView(generics.RetrieveAPIView):
+    queryset = Lesson.objects.all()
+    renderer_classes = [TemplateHTMLRenderer]
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return Response({'user': self.object}, template_name='template.html')
 
+# class CommentView:
+#      def __init__(self,comment ):
+#         CommentSerializer.__init__(self,comment)
+#         self.comment =comment 
+        
+        
