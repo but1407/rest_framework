@@ -1,5 +1,9 @@
-from rest_framework.serializers import ModelSerializer
-from .models import Course,Lesson,Tag,User
+from rest_framework.serializers import ModelSerializer,BaseSerializer
+from rest_framework import serializers
+from django.http import HttpResponse
+from .models import Course,Lesson,Tag,User,Category
+
+
 
 
 
@@ -19,9 +23,20 @@ class UserSerializer(ModelSerializer):
         return user
 
 class CourseSerializer(ModelSerializer):
+    
     class Meta:
         model =Course
-        fields =["id","subject",'image','created_at','updated_at']
+        fields =["id","subject",'image','created_at','updated_at',"category"]
+    def create(self, validated_data):
+        profile_data = validated_data.pop('category')
+        course = Course.objects.create(**validated_data)
+        
+        # Lấy các trường của Profile từ profile_data
+        profile_fields = profile_data.pop('fields', {})
+        
+        # Tạo Profile mới với các trường từ profile_fields và user đã tạo
+        Category.objects.create(course=course, **profile_fields)
+        return course
 
 class TagSerializer(ModelSerializer):
     class Meta:
@@ -30,6 +45,7 @@ class TagSerializer(ModelSerializer):
         
 class LessonSerializer(ModelSerializer):
     tags =TagSerializer(many=True)
+    
     class Meta:
         model = Lesson
         fields =["id","subject","content","created_at","updated_at","tags","active","image"]

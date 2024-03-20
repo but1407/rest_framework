@@ -17,6 +17,9 @@ from rest_framework.renderers import JSONRenderer,TemplateHTMLRenderer
 # Create your views here.
 
 class ExampleView(APIView):
+    def get(self, validated_data):
+        books = [Course(**item) for item in validated_data]
+        return Response(books)
     parser_classes = [JSONParser]
 
     def post(self, request, format=None):
@@ -35,14 +38,15 @@ class UserViewSet(viewsets.ViewSet,
         return [permissions.AllowAny()]
     
 class CourseViewSet(viewsets.ModelViewSet,):
+    
         queryset = Course.objects.filter(active=True) 
         serializer_class = CourseSerializer
-        permission_classes = [permissions.IsAuthenticated]
-        swagger_schema= None
-        def get_permissions(self):
-            if self.action == 'list':
-                return [permissions.AllowAny()]
-            return [permissions.IsAuthenticated]
+        # permission_classes = [permissions.IsAuthenticated]
+        # swagger_schema= None
+        # def get_permissions(self):
+        #     if self.action == 'list':
+        #         return [permissions.AllowAny()]
+        #     return [permissions.IsAuthenticated]
 
 class LessonViewSet(viewsets.ModelViewSet):
     queryset= Lesson.objects.filter(active=True)
@@ -71,8 +75,6 @@ def Index(requesst):
     
     t.lesson_set.all()
     return HttpResponse(t)
-
-
 class UserViewSet2(viewsets.ViewSet):
     """
     A simple ViewSet for listing or retrieving users.
